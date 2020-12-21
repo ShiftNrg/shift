@@ -1,4 +1,4 @@
-## SHIFT version 6.9.0
+## SHIFT version 6.10.0
 
 ## Installation
 
@@ -59,7 +59,7 @@ Rebuild blockchain from official snapshot
 
 ## License
 
-Copyright © 2016-2020 Shift  
+Copyright © 2016-2021 Shift  
 Copyright © 2016-2017 Lisk Foundation
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.

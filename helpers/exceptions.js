@@ -144,5 +144,15 @@ module.exports = {
 	votes: {
 		'2282110162730086709': true, // 2427035
 		'18214876648030162984': true // 2447981
-	}
+	},
+	burnAddress: '18446744073709551616S', // Largest possible valid SHIFT address = 18446744073709551615 + 'S'
+	teamFundRecipientAddress: '10096178438121210940S', // new team's wallet w/ 2nd signature
+	teamFundRecipientPublicKey: '29e87e9138a8103df9fa0961e468d099a7dfa89734293125e93549fcb28b41c4',
+	teamFundAccounts: [
+		'745779987933065574S', 'b7da040ddb478aac569caf205e4d587d4f30ec8cb81cb119b8d90f4addd3da10',		// old team funds wallet 1: 250,000.49 SHIFT
+		'14579919613371567223S', 'c61b54de18f2b489d5e5791d3941c576d01f09044f23b55413ddf20eb7930da4',	// old team funds wallet 2: 250,010.89 SHIFT
+		'13828254353508257358S', '3242eab24cf88a9e30160ff3da0631973f606877619314f8909cea9a47fccf5c', 	// old team funds wallet 3: 250,000.08 SHIFT
+		'6323231687467908627S', '0df33f1480b23c09899c095a5460bd7aad01c19b4319948c527f770f0f17390d', 	// new dev donations address
+		'9462043523189536608S', '69844b687d92e831625e01e30c7b532a2d330a3727e0db2e59be3891cf0dc551'		// salary wallet account: 160,820.8 SHIFT = 100,820.8 (old) + 60,000 (new)
+	]
 };

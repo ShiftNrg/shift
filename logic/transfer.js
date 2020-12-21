@@ -1,6 +1,7 @@
 'use strict';
 
-var constants = require('../helpers/constants.js');
+const constants = require('../helpers/constants.js');
+const exceptions = require('../helpers/exceptions.js');
 
 // Private fields
 var modules;
@@ -61,6 +62,13 @@ Transfer.prototype.calculateFee = function (trs, sender, height) {
 Transfer.prototype.verify = function (trs, sender, cb) {
 	if (!trs.recipientId) {
 		return setImmediate(cb, 'Missing recipient');
+	}
+
+	// Team Wallet Funds sending is locked to 1 address
+	if (sender && sender.address && exceptions.teamFundAccounts.includes(sender.address)) {
+		if (trs.recipientId && trs.recipientId !== exceptions.teamFundRecipientAddress) {
+			return setImmediate(cb, `Wrong recipient, funds must be sent to: ${exceptions.teamFundRecipientAddress}`);
+		}
 	}
 
 	if (trs.amount <= 0) {

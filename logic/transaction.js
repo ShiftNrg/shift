@@ -238,6 +238,8 @@ Transaction.prototype.getBytes = function (trs, skipSignature, skipSecondSignatu
 					if (trs.recipientId !== exceptions.addresses[trs.id]) {
 						throw 'Recipient address ' + trs.recipientId + ' does not match the one fixed in exception: ' + exceptions.addresses[trs.id];
 					}
+				} else if (trs.recipientId === exceptions.burnAddress) {
+					// do nothing - allow burning of SHIFT
 				} else {
 					throw 'Recipient address number exceeds uint64 range';
 				}
