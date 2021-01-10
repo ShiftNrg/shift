@@ -509,9 +509,9 @@ case $1 in
       show_networkBlockHeight
     ;;
     "createsnapshot")
+      parse_option $@
       stop_shift
       backup_blockchain
-      parse_option $@
       start_shift
     ;;
     "snapshot")
