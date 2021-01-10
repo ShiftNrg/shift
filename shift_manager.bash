@@ -508,7 +508,7 @@ case $1 in
       show_blockHeight
       show_networkBlockHeight
     ;;
-    "createsnapshot")
+    "create_snapshot")
       parse_option $@
       stop_shift
       backup_blockchain
@@ -523,7 +523,7 @@ case $1 in
     ;;
 
 *)
-    echo 'Available options: install, reload (stop/start), rebuild (official snapshot), createsnapshot, start, stop, update_manager, update_client, update_wallet'
+    echo 'Available options: install, reload (stop/start), rebuild (official snapshot), create_snapshot, start, stop, update_manager, update_client, update_wallet'
     echo 'Usage: ./shift_installer.bash install'
     exit 1
 ;;
