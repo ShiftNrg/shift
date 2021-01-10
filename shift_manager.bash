@@ -26,10 +26,12 @@ DB_NAME="$(grep "database" $SHIFT_CONFIG | cut -f 4 -d '"' | head -1)"
 DB_UNAME="$(grep "user" $SHIFT_CONFIG | cut -f 4 -d '"' | head -1)"
 DB_PASSWD="$(grep "password" $SHIFT_CONFIG | cut -f 4 -d '"' | head -1)"
 DB_SNAPSHOT="blockchain.db.gz"
+DB_PORT="$(cat $SHIFT_CONFIG | jq -r '.port')"
+
 NETWORK=""
 set_network
 # BLOCKCHAIN_URL="https://downloads.shiftnrg.org/snapshot/$NETWORK"
-BLOCKCHAIN_URL="https://snapshot.shiftnrg.io/$NETWORK"
+BLOCKCHAIN_URL="https://snapshot.shiftnrg.io/$NETWORK" 
 GIT_BRANCH="$(git branch | sed -n '/\* /s///p')"
 
 install_prereq() {
@@ -92,7 +94,7 @@ ntp_checks() {
         sudo service ntp stop &>> $logfile
         sudo ntpdate pool.ntp.org &>> $logfile
         sudo service ntp start &>> $logfile
-        if ! sudo pgrep -x "ntpd" > /dev/null; then
+        if ! sudo pgrep -x "ntpd" > /dev/null; then 
           echo -e "SHIFT requires NTP running. Please check /etc/ntp.conf and correct any issues. Exiting."
           exit 1
         echo -e "done.\n"
@@ -116,6 +118,20 @@ create_database() {
     fi
 }
 
+backup_blockchain() {
+  echo "Creating $DB_SNAPSHOT from local node"
+
+  pg_dump --dbname=postgresql://$DB_UNAME:$DB_PASSWD@127.0.0.1:$DB_PORT/$DB_NAME | gzip > $DB_SNAPSHOT
+
+  if [ $? != 0 ]; then
+    rm -f $DB_SNAPSHOT
+    echo "X Failed to create blockchain snapshot."
+    exit 1
+  else
+    echo "√ Blockchain snapshot created successfully."
+  fi
+}
+
 download_blockchain() {
     echo -n "Download a recent, verified snapshot? ([y]/n): "
     read downloadornot
@@ -134,6 +150,7 @@ download_blockchain() {
             exit 1
         else
             echo "√ Blockchain snapshot downloaded successfully."
+            return 0
         fi
     else
         echo -e "√ Using Local Snapshot."
@@ -385,10 +402,10 @@ show_networkBlockHeight(){
   fi
 
   if [[ ! "$networkBlockHeight" =~ ^[0-9]+$ ]] ; then
-           echo "Problem fetching network height check your internet connection or there is issue with $NETWORK api"
-           exit 1
+    echo "Problem fetching network height check your internet connection or there is issue with $NETWORK api"
   fi
   echo "Network height = $networkBlockHeight"
+  return 0
 }
 
 show_blockHeight(){
@@ -491,6 +508,12 @@ case $1 in
       show_blockHeight
       show_networkBlockHeight
     ;;
+    "createsnapshot")
+      stop_shift
+      backup_blockchain
+      parse_option $@
+      start_shift
+    ;;
     "snapshot")
       parse_option $@
       start_snapshot
@@ -500,7 +523,7 @@ case $1 in
     ;;
 
 *)
-    echo 'Available options: install, reload (stop/start), rebuild (official snapshot), start, stop, update_manager, update_client, update_wallet'
+    echo 'Available options: install, reload (stop/start), rebuild (official snapshot), createsnapshot, start, stop, update_manager, update_client, update_wallet'
     echo 'Usage: ./shift_installer.bash install'
     exit 1
 ;;
