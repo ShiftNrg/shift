@@ -377,6 +377,20 @@ running() {
     return 0
 }
 
+show_networkBlockHeight(){
+  if [ "$NETWORK" == "mainnet" ] ; then
+    networkBlockHeight=`curl -s https://wallet.shiftnrg.org/api/blocks/getStatus | jq -r '.height'` 2>/dev/null
+  else
+    networkBlockHeight=`curl -s https://wallet.testnet.shiftnrg.org/api/blocks/getStatus | jq -r '.height'` 2>/dev/null
+  fi
+
+  if [[ ! "$networkBlockHeight" =~ ^[0-9]+$ ]] ; then
+           echo "Problem fetching network height check your internet connection or there is issue with $NETWORK api"
+           exit 1
+  fi
+  echo "Network height = $networkBlockHeight"
+}
+
 show_blockHeight(){
   export PGPASSWORD=$DB_PASSWD
   blockHeight=$(psql -d $DB_NAME -U $DB_UNAME -h localhost -p 5432 -t -c "select height from blocks order by height desc limit 1")
@@ -433,6 +447,7 @@ case $1 in
       sleep 2
       start_shift
       show_blockHeight
+      show_networkBlockHeight
     ;;
     "update_wallet")
       start_log
@@ -442,12 +457,14 @@ case $1 in
       sleep 2
       start_shift
       show_blockHeight
+      show_networkBlockHeight
     ;;
     "reload")
       stop_shift
       sleep 2
       start_shift
       show_blockHeight
+      show_networkBlockHeight
       ;;
     "rebuild")
       stop_shift
@@ -457,11 +474,13 @@ case $1 in
       rebuild_shift
       start_shift
       show_blockHeight
+      show_networkBlockHeight
       ;;
     "status")
       if running; then
         echo "√ SHIFT is running."
         show_blockHeight
+        show_networkBlockHeight
       else
         echo "X SHIFT is NOT running."
       fi
@@ -470,6 +489,7 @@ case $1 in
       parse_option $@
       start_shift
       show_blockHeight
+      show_networkBlockHeight
     ;;
     "snapshot")
       parse_option $@
