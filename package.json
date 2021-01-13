@@ -37,7 +37,7 @@
     "lodash": "=4.17.13",
     "method-override": "=2.3.10",
     "nan": "^2.2.1",
-    "npm": "=6.13.4",
+    "npm": "=6.14.6",
     "pg-monitor": "=0.7.1",
     "pg-native": "=1.10.0",
     "pg-promise": "=5.5.6",
