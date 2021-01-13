@@ -30,7 +30,7 @@ DB_SNAPSHOT="blockchain.db.gz"
 NETWORK=""
 set_network
 # BLOCKCHAIN_URL="https://downloads.shiftnrg.org/snapshot/$NETWORK"
-BLOCKCHAIN_URL="https://snapshot.shiftnrg.io/$NETWORK"
+BLOCKCHAIN_URL="https://snapshot.shiftnrg.io/$NETWORK" 
 GIT_BRANCH="$(git branch | sed -n '/\* /s///p')"
 
 install_prereq() {
@@ -93,7 +93,7 @@ ntp_checks() {
         sudo service ntp stop &>> $logfile
         sudo ntpdate pool.ntp.org &>> $logfile
         sudo service ntp start &>> $logfile
-        if ! sudo pgrep -x "ntpd" > /dev/null; then
+        if ! sudo pgrep -x "ntpd" > /dev/null; then 
           echo -e "SHIFT requires NTP running. Please check /etc/ntp.conf and correct any issues. Exiting."
           exit 1
         echo -e "done.\n"
