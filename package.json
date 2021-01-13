@@ -34,7 +34,7 @@
     "ip": "https://github.com/ShiftProject/node-ip/tarball/master",
     "json-schema": "=0.2.3",
     "json-sql": "https://github.com/ShiftProject/json-sql/tarball/master",
-    "lodash": "=4.17.13",
+    "lodash": "=4.17.19",
     "method-override": "=2.3.10",
     "nan": "^2.2.1",
     "npm": "=6.14.6",
