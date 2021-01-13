@@ -3,7 +3,7 @@ PATH="/usr/local/bin:/usr/bin:/bin"
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US.UTF-8
-version="1.0.0"
+version="1.0.1"
 
 cd "$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 root_path=$(pwd)
@@ -26,12 +26,11 @@ DB_NAME="$(grep "database" $SHIFT_CONFIG | cut -f 4 -d '"' | head -1)"
 DB_UNAME="$(grep "user" $SHIFT_CONFIG | cut -f 4 -d '"' | head -1)"
 DB_PASSWD="$(grep "password" $SHIFT_CONFIG | cut -f 4 -d '"' | head -1)"
 DB_SNAPSHOT="blockchain.db.gz"
-DB_PORT="$(cat $SHIFT_CONFIG | jq -r '.port')"
 
 NETWORK=""
 set_network
 # BLOCKCHAIN_URL="https://downloads.shiftnrg.org/snapshot/$NETWORK"
-BLOCKCHAIN_URL="https://snapshot.shiftnrg.io/$NETWORK" 
+BLOCKCHAIN_URL="https://snapshot.shiftnrg.io/$NETWORK"
 GIT_BRANCH="$(git branch | sed -n '/\* /s///p')"
 
 install_prereq() {
@@ -94,7 +93,7 @@ ntp_checks() {
         sudo service ntp stop &>> $logfile
         sudo ntpdate pool.ntp.org &>> $logfile
         sudo service ntp start &>> $logfile
-        if ! sudo pgrep -x "ntpd" > /dev/null; then 
+        if ! sudo pgrep -x "ntpd" > /dev/null; then
           echo -e "SHIFT requires NTP running. Please check /etc/ntp.conf and correct any issues. Exiting."
           exit 1
         echo -e "done.\n"
@@ -121,7 +120,7 @@ create_database() {
 backup_blockchain() {
   echo "Creating $DB_SNAPSHOT from local node"
 
-  pg_dump --dbname=postgresql://$DB_UNAME:$DB_PASSWD@127.0.0.1:$DB_PORT/$DB_NAME | gzip > $DB_SNAPSHOT
+  pg_dump --dbname=postgresql://$DB_UNAME:$DB_PASSWD@127.0.0.1:5432/$DB_NAME | gzip > $DB_SNAPSHOT
 
   if [ $? != 0 ]; then
     rm -f $DB_SNAPSHOT
