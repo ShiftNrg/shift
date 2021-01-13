@@ -26,10 +26,12 @@ DB_NAME="$(grep "database" $SHIFT_CONFIG | cut -f 4 -d '"' | head -1)"
 DB_UNAME="$(grep "user" $SHIFT_CONFIG | cut -f 4 -d '"' | head -1)"
 DB_PASSWD="$(grep "password" $SHIFT_CONFIG | cut -f 4 -d '"' | head -1)"
 DB_SNAPSHOT="blockchain.db.gz"
+DB_PORT="$(cat $SHIFT_CONFIG | jq -r '.port')"
+
 NETWORK=""
 set_network
 # BLOCKCHAIN_URL="https://downloads.shiftnrg.org/snapshot/$NETWORK"
-BLOCKCHAIN_URL="https://snapshot.shiftnrg.io/$NETWORK"
+BLOCKCHAIN_URL="https://snapshot.shiftnrg.io/$NETWORK" 
 GIT_BRANCH="$(git branch | sed -n '/\* /s///p')"
 
 install_prereq() {
@@ -92,7 +94,7 @@ ntp_checks() {
         sudo service ntp stop &>> $logfile
         sudo ntpdate pool.ntp.org &>> $logfile
         sudo service ntp start &>> $logfile
-        if ! sudo pgrep -x "ntpd" > /dev/null; then
+        if ! sudo pgrep -x "ntpd" > /dev/null; then 
           echo -e "SHIFT requires NTP running. Please check /etc/ntp.conf and correct any issues. Exiting."
           exit 1
         echo -e "done.\n"
@@ -116,6 +118,20 @@ create_database() {
     fi
 }
 
+backup_blockchain() {
+  echo "Creating $DB_SNAPSHOT from local node"
+
+  pg_dump --dbname=postgresql://$DB_UNAME:$DB_PASSWD@127.0.0.1:$DB_PORT/$DB_NAME | gzip > $DB_SNAPSHOT
+
+  if [ $? != 0 ]; then
+    rm -f $DB_SNAPSHOT
+    echo "X Failed to create blockchain snapshot."
+    exit 1
+  else
+    echo "√ Blockchain snapshot created successfully."
+  fi
+}
+
 download_blockchain() {
     echo -n "Download a recent, verified snapshot? ([y]/n): "
     read downloadornot
@@ -134,6 +150,7 @@ download_blockchain() {
             exit 1
         else
             echo "√ Blockchain snapshot downloaded successfully."
+            return 0
         fi
     else
         echo -e "√ Using Local Snapshot."
@@ -377,6 +394,20 @@ running() {
     return 0
 }
 
+show_networkBlockHeight(){
+  if [ "$NETWORK" == "mainnet" ] ; then
+    networkBlockHeight=`curl -s https://wallet.shiftnrg.org/api/blocks/getStatus | jq -r '.height'` 2>/dev/null
+  else
+    networkBlockHeight=`curl -s https://wallet.testnet.shiftnrg.org/api/blocks/getStatus | jq -r '.height'` 2>/dev/null
+  fi
+
+  if [[ ! "$networkBlockHeight" =~ ^[0-9]+$ ]] ; then
+    echo "Problem fetching network height check your internet connection or there is issue with $NETWORK api"
+  fi
+  echo "Network height = $networkBlockHeight"
+  return 0
+}
+
 show_blockHeight(){
   export PGPASSWORD=$DB_PASSWD
   blockHeight=$(psql -d $DB_NAME -U $DB_UNAME -h localhost -p 5432 -t -c "select height from blocks order by height desc limit 1")
@@ -433,6 +464,7 @@ case $1 in
       sleep 2
       start_shift
       show_blockHeight
+      show_networkBlockHeight
     ;;
     "update_wallet")
       start_log
@@ -442,12 +474,14 @@ case $1 in
       sleep 2
       start_shift
       show_blockHeight
+      show_networkBlockHeight
     ;;
     "reload")
       stop_shift
       sleep 2
       start_shift
       show_blockHeight
+      show_networkBlockHeight
       ;;
     "rebuild")
       stop_shift
@@ -457,11 +491,13 @@ case $1 in
       rebuild_shift
       start_shift
       show_blockHeight
+      show_networkBlockHeight
       ;;
     "status")
       if running; then
         echo "√ SHIFT is running."
         show_blockHeight
+        show_networkBlockHeight
       else
         echo "X SHIFT is NOT running."
       fi
@@ -470,6 +506,13 @@ case $1 in
       parse_option $@
       start_shift
       show_blockHeight
+      show_networkBlockHeight
+    ;;
+    "create_snapshot")
+      parse_option $@
+      stop_shift
+      backup_blockchain
+      start_shift
     ;;
     "snapshot")
       parse_option $@
@@ -480,7 +523,7 @@ case $1 in
     ;;
 
 *)
-    echo 'Available options: install, reload (stop/start), rebuild (official snapshot), start, stop, update_manager, update_client, update_wallet'
+    echo 'Available options: install, reload (stop/start), rebuild (official snapshot), create_snapshot, start, stop, update_manager, update_client, update_wallet'
     echo 'Usage: ./shift_installer.bash install'
     exit 1
 ;;
